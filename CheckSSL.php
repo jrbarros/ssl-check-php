@@ -29,10 +29,11 @@ class CheckSSL
      * @param string $dateFormat
      * @param string $timeZone
      * @param string $formatString
+     * @throws Exception
      */
     public function __construct(array $url = [], $dateFormat = 'U', $formatString = 'Y-m-d\TH:i:s\Z',  $timeZone = null)
     {
-        $this->urls = $url;
+        ! empty($url) ? $this->add($url) : $this->urls = $url;
         $this->dateFormat = $dateFormat;
         $this->timeZone = $timeZone;
         $this->formatString = $formatString;
