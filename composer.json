@@ -1,0 +1,19 @@
+{
+    "name": "jrbarros/ssl-check-php",
+    "description": "Check ssl validate in https urls",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Joalisson Barros",
+            "email": "joalissonricardo@gmail.com"
+        }
+    ],
+
+    "require": {
+        "ext-openssl": "*"
+    },
+    "autoload": {
+        "psr-4": { "JrBarros\\": "" }
+    }
+}
