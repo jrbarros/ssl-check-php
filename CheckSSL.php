@@ -6,6 +6,7 @@ namespace JrBarros;
 
 use DateTime;
 use DateTimeZone;
+use Exception;
 use http\Encoding\Stream;
 use RuntimeException;
 
@@ -16,24 +17,11 @@ use RuntimeException;
 class CheckSSL
 {
 
-    /**
-     * @var array
-     */
-    protected array $url;
-
-    /**
-     * @var array
-     */
+    protected array $urls;
     protected array $result;
-    /**
-     * @var string
-     */
-    private string $dateFormat;
-    /**
-     * @var string
-     */
-    private ?string $timeZone;
-    private $formatString;
+    protected string $dateFormat;
+    protected string $formatString;
+    protected ?string $timeZone;
 
     /**
      * CheckSSL constructor.
@@ -42,53 +30,64 @@ class CheckSSL
      * @param string $timeZone
      * @param string $formatString
      */
-    public function __construct(array $url = [], $dateFormat = 'U', $timeZone = null, $formatString = 'Y-m-d\TH:i:s\Z')
+    public function __construct(array $url = [], $dateFormat = 'U', $formatString = 'Y-m-d\TH:i:s\Z',  $timeZone = null)
     {
-        $this->url = $url;
+        $this->urls = $url;
         $this->dateFormat = $dateFormat;
         $this->timeZone = $timeZone;
         $this->formatString = $formatString;
     }
 
     /**
-     * @param array $data
+     * @param string $data
      * @return CheckSSL
      * @throws \Exception
      */
-    public function add(array $data): CheckSSL
+    public function add(...$data): CheckSSL
     {
-        if (empty($data['url'])) {
-            throw new \Exception();
+        foreach ($data as $url) {
+            if (is_iterable($url)) {
+                foreach ($url as $i) {
+                    $this->add($i);
+                }
+                continue;
+            }
+
+            if (empty($url)) {
+                throw new \Exception('please  target url is empty');
+            }
+
+            if (! $this->isValidUrl($url)) {
+                throw new \Exception('malformed URLs');
+            }
+
+            $cleanUrl = parse_url($url, PHP_URL_HOST);
+
+            if ($cleanUrl === false || $cleanUrl === null) {
+                throw new \Exception('seriously malformed URLs');
+            }
+
+            $this->urls[] = $cleanUrl;
         }
-
-        $data['url'] = parse_url($data['url'], PHP_URL_HOST);
-
-        $this->url[] = array_merge($this->url, $data);
-
         return $this;
-    }
-
-    public function getUrls()
-    {
-        return $this->url;
     }
 
     /**
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
-    public function check(): array
+    public function check(): ?array
     {
-        foreach ($this->url as $item) {
+        foreach ($this->urls as $item) {
 
-            $cert = $this->getCert($item['url']);
+            $cert = $this->getCert($item);
 
             if ($cert === false) {
-               // TODO: tratar error de uma URL
+                $this->result[$item] = null;
                 continue;
             }
 
-           $this->result[] = $item['result'] = $this->getSLLInformation($cert);
+            $this->result[$item] =  $this->getSLLInformation($cert);
 
         }
 
@@ -96,11 +95,11 @@ class CheckSSL
     }
 
     /**
-     * @param resource $read
+     * @param resource $siteStream
      * @return array('valid_from' => \DateTime,'valid_to'=> \DateTime)
-     * @throws \Exception
+     * @throws Exception
      */
-    private function getSLLInformation($siteStream) : array
+    private function getSLLInformation($siteStream): array
     {
         try {
 
@@ -116,19 +115,26 @@ class CheckSSL
 
             $valid_from = $this->normalizeDate((string) $certInfo['validFrom_time_t']);
             $valid_to   = $this->normalizeDate((string) $certInfo['validTo_time_t']);
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             throw new RuntimeException($exception->getMessage());
         }
 
         return [
-            'valid_from' => $valid_from,
-            'valid_to'   => $valid_to
+            'created_at' => $valid_from,
+            'valid_until'   => $valid_to
         ];
 
     }
 
+    /**
+     * @return array|mixed
+     */
     private function getResults()
     {
+        if (count($this->result) === 1) {
+            return current($this->result);
+        }
+
         return $this->result;
     }
 
@@ -154,7 +160,7 @@ class CheckSSL
     {
         try {
             $messageError = 'error to get certificate';
-            $cert = stream_socket_client(
+            $cert = @stream_socket_client(
                 'ssl://' . $url. ':443',
                 $errno, $messageError, 30,
                 STREAM_CLIENT_CONNECT, $this->getStreamContext()
@@ -189,27 +195,20 @@ class CheckSSL
      */
     public function getCertFromArray($certStream)
     {
-        $this->certStreamValidation($certStream);
-
         return $certStream['options']['ssl']['peer_certificate'];
     }
 
     /**
-     * @param $certStream
+     * @param string $data
      * @return bool
      */
-    private function certStreamValidation($certStream): bool
+    private function isValidUrl(string $data): bool
     {
-        if (! is_array($certStream) ||
-            ! array_key_exists('options', $certStream)||
-            ! array_key_exists('ssl', $certStream['options']) ||
-            ! array_key_exists('peer_certificate', $certStream['options']['ssl']) ||
-            ! is_resource($certStream['options']['ssl']['peer_certificate']) ||
-            get_resource_type($certStream['options']['ssl']['peer_certificate']) !== 'OpenSSL X.509') {
+        $regex =
+            "%^(?:(?:https?|ftp)://)(?:\S+(?::\S*)?@|\d{1,3}(?:\.\d{1,3}){3}|(?:(?:[a-z\d\x{00a1}-\x{ffff}]+-?)*" .
+            "[a-z\d\x{00a1}-\x{ffff}]+)(?:\.(?:[a-z\d\x{00a1}-\x{ffff}]+-?)*[a-z\d\x{00a1}-\x{ffff}]+)*" .
+            "(?:\.[a-z\x{00a1}-\x{ffff}]{2,6}))(?::\d+)?(?:[^\s]*)?$%iu";
 
-            throw  new RuntimeException('param $certStream not type OpenSSL X.509');
-        }
-
-        return true;
+        return (1 === preg_match($regex,$data));
     }
 }

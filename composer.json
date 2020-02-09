@@ -11,7 +11,9 @@
     ],
 
     "require": {
-        "ext-openssl": "*"
+        "php":"7.4.*",
+        "ext-openssl": "*",
+        "ext-curl": "*"
     },
     "autoload": {
         "psr-4": { "JrBarros\\": "" }
