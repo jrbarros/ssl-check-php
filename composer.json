@@ -19,6 +19,7 @@
         "psr-4": { "JrBarros\\": "" }
     },
     "require-dev": {
-        "vimeo/psalm": "^3.8"
+        "vimeo/psalm": "^3.8",
+        "phpunit/phpunit": "9"
     }
 }

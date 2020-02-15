@@ -26,13 +26,13 @@ class CheckSSL
      * CheckSSL constructor.
      * @param array $url
      * @param string $dateFormat
-     * @param string $timeZone
      * @param string $formatString
+     * @param string|null $timeZone
      * @throws Exception
      */
-    public function __construct(array $url = [], $dateFormat = 'U', $formatString = 'Y-m-d\TH:i:s\Z',  $timeZone = null)
+    public function __construct(array $url = [],string $dateFormat = 'U',string $formatString = 'Y-m-d\TH:i:s\Z',?string $timeZone = null)
     {
-        $this->urls = $this->add($url)->urls;
+        ! empty($url) ? $this->add($url) : $this->urls = $url;
         $this->dateFormat = $dateFormat;
         $this->timeZone = $timeZone;
         $this->formatString = $formatString;
@@ -197,7 +197,7 @@ class CheckSSL
      * @param array $certStream
      * @return resource
      */
-    public function getCertFromArray(array $certStream)
+    private function getCertFromArray(array $certStream)
     {
         return $certStream['options']['ssl']['peer_certificate'];
     }
