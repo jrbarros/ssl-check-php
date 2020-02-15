@@ -17,5 +17,8 @@
     },
     "autoload": {
         "psr-4": { "JrBarros\\": "" }
+    },
+    "require-dev": {
+        "vimeo/psalm": "^3.8"
     }
 }

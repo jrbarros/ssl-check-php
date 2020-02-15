@@ -1,7 +1,7 @@
 # SSL Check PHP
 
 
-add an easy description for humans to understand
+This lib aims to obtain information on the validity of the SSL certificate of WebSites.
 --------------------------------------------------------------
 
 
@@ -41,71 +41,82 @@ print_r($example3);
 
 ```php
 [
-    [created_at] => 2019-04-04T00:00:00Z
-    [valid_until] => 2020-04-04T12:00:00Z
-]
+    "is_valid"    => true,
+    "created_at" => "2019-04-04T00:00:00Z",
+    "valid_until" => "2020-04-04T12:00:00Z"
+];
 ```
 ##### output $example1:
 ```php
 [
-    [symfony.com] => [
-               [created_at] => 2019-04-04T00:00:00Z
-               [valid_until] => 2020-04-04T12:00:00Z
+    "symfony.com" => [
+               "is_valid"    => true,
+               "created_at" => "2019-04-04T00:00:00Z",
+               "valid_until" => "2020-04-04T12:00:00Z"
+           ],
+  
+    "laravel.com" => [
+               "is_valid"    => true,
+               "created_at" => "2019-11-19T00:00:00Z",
+               "valid_until" => "2020-10-09T12:00:00Z"
            ]
-   
-    [laravel.com] => [
-               [created_at] => 2019-11-19T00:00:00Z
-               [valid_until] => 2020-10-09T12:00:00Z
-           ]
-]
+];
 ```
 ##### output $example2:
 ```php
 [
-     [symfony.com] => [
-             [created_at] => 2019-04-04T00:00:00Z
-             [valid_until] => 2020-04-04T12:00:00Z
-         ]
+     "symfony.com" => [
+             "is_valid"    => true,
+             "created_at" => "2019-04-04T00:00:00Z",
+             "valid_until" => "2020-04-04T12:00:00Z"
+         ],
+
+     "laravel.com" => [
+             "is_valid"    => true,
+             "created_at" => "2019-11-19T00:00:00Z",
+             "valid_until" => "2020-10-09T12:00:00Z"
+         ],
  
-     [laravel.com] => [
-             [created_at] => 2019-11-19T00:00:00Z
-             [valid_until] => 2020-10-09T12:00:00Z
-         ]
+     "getlaminas.org" => [
+             "is_valid"    => true,
+             "created_at" => "2019-08-14T00:00:00Z",
+             "valid_until" => "2020-08-13T12:00:00Z"
+         ],
  
-     [getlaminas.org] => [
-             [created_at] => 2019-08-14T00:00:00Z
-             [valid_until] => 2020-08-13T12:00:00Z
+     "www.zend.com" => [
+             "is_valid"    => true,
+             "created_at" => "2019-06-12T00:00:00Z",
+             "valid_until" => "2020-06-16T12:00:00Z"
          ]
- 
-     [www.zend.com] => [
-             [created_at] => 2019-06-12T00:00:00Z
-             [valid_until] => 2020-06-16T12:00:00Z
-         ]
-]
+];
 ```
 ##### output $example3:
 ```php
 [
-    [symfony.com] => [
-               [created_at] => 2019-04-04T00:00:00Z
-               [valid_until] => 2020-04-04T12:00:00Z
-           ]
+    "symfony.com" => [
+             "is_valid"    => true,
+             "created_at" => "2019-04-04T00:00:00Z",
+             "valid_until" => "2020-04-04T12:00:00Z"
+           ],
    
-    [laravel.com] => [
-           [created_at] => 2019-11-19T00:00:00Z
-           [valid_until] => 2020-10-09T12:00:00Z
-       ]
+    "laravel.com" => [
+            "is_valid"    => true,
+            "created_at" => "2019-11-19T00:00:00Z",
+            "valid_until" => "2020-10-09T12:00:00Z"
+       ],
    
-    [getlaminas.org] => [
-           [created_at] => 2019-08-14T00:00:00Z
-           [valid_until] => 2020-08-13T12:00:00Z
-       ]
+    "getlaminas.org" => [
+           "is_valid"    => true,
+           "created_at" => "2019-08-14T00:00:00Z",
+           "valid_until" => "2020-08-13T12:00:00Z"
+       ],
     
-    [www.zend.com] => [
-           [created_at] => 2019-06-12T00:00:00Z
-           [valid_until] => 2020-06-16T12:00:00Z
+    "www.zend.com" => [
+           "is_valid"    => true,
+           "created_at" => "2019-06-12T00:00:00Z",
+           "valid_until" => "2020-06-16T12:00:00Z"
        ]
-]
+];
 ```
 
 
@@ -115,6 +126,8 @@ print_r($example3);
 <?php
 
 use JrBarros\CheckSSL;
+
+require 'vendor/autoload.php';
 
 $data = [ 'https://symfony.com', 'https://getlaminas.org'];
 
@@ -130,14 +143,16 @@ print_r($checkSLL->check());
 ##### output custom format:
 ```php
 [
-    [symfony.com] => [
-            [created_at] => 04-04-2019 00:00:00
-            [valid_until] => 04-04-2020 12:00:00
-        ]
+    "symfony.com" => [
+            "is_valid"    => true,
+            "created_at" => "04-04-2019 00:00:00",
+            "valid_until" => "04-04-2020 12:00:00"
+        ],
 
-    [getlaminas.org] => [
-            [created_at] => 14-08-2019 00:00:00
-            [valid_until] => 13-08-2020 12:00:00
+    "getlaminas.org" => [
+            "is_valid"    => true,
+            "created_at" => "14-08-2019 00:00:00",
+            "valid_until" => "13-08-2020 12:00:00"
         ]
-]
+];
 ```

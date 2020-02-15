@@ -7,7 +7,6 @@ namespace JrBarros;
 use DateTime;
 use DateTimeZone;
 use Exception;
-use http\Encoding\Stream;
 use RuntimeException;
 
 /**
@@ -33,19 +32,21 @@ class CheckSSL
      */
     public function __construct(array $url = [], $dateFormat = 'U', $formatString = 'Y-m-d\TH:i:s\Z',  $timeZone = null)
     {
-        ! empty($url) ? $this->add($url) : $this->urls = $url;
+        $this->urls = $this->add($url)->urls;
         $this->dateFormat = $dateFormat;
         $this->timeZone = $timeZone;
         $this->formatString = $formatString;
+        $this->result = [];
     }
 
     /**
-     * @param string $data
+     * @param array $data
      * @return CheckSSL
      * @throws \Exception
      */
     public function add(...$data): CheckSSL
     {
+        /** @var array|string $url */
         foreach ($data as $url) {
             if (is_iterable($url)) {
                 foreach ($url as $i) {
@@ -64,7 +65,7 @@ class CheckSSL
 
             $cleanUrl = parse_url($url, PHP_URL_HOST);
 
-            if ($cleanUrl === false || $cleanUrl === null) {
+            if ($cleanUrl === null) {
                 throw new \Exception('seriously malformed URLs');
             }
 
@@ -81,6 +82,7 @@ class CheckSSL
     {
         foreach ($this->urls as $item) {
 
+            /** @var resource|false $cert */
             $cert = $this->getCert($item);
 
             if ($cert === false) {
@@ -89,15 +91,14 @@ class CheckSSL
             }
 
             $this->result[$item] =  $this->getSLLInformation($cert);
-
         }
 
         return $this->getResults();
     }
 
     /**
-     * @param resource $siteStream
-     * @return array('valid_from' => \DateTime,'valid_to'=> \DateTime)
+     * @param resource|false $siteStream
+     * @return array
      * @throws Exception
      */
     private function getSLLInformation($siteStream): array
@@ -114,6 +115,7 @@ class CheckSSL
 
             $certInfo = openssl_x509_parse($cert);
 
+            $isValid = time() <= $certInfo['validTo_time_t'];
             $valid_from = $this->normalizeDate((string) $certInfo['validFrom_time_t']);
             $valid_to   = $this->normalizeDate((string) $certInfo['validTo_time_t']);
         } catch (Exception $exception) {
@@ -121,8 +123,9 @@ class CheckSSL
         }
 
         return [
-            'created_at' => $valid_from,
-            'valid_until'   => $valid_to
+            'is_valid'    => $isValid,
+            'created_at'  => $valid_from,
+            'valid_until' => $valid_to
         ];
 
     }
@@ -154,10 +157,10 @@ class CheckSSL
     }
 
     /**
-     * @param $url
+     * @param string $url
      * @return false|resource
      */
-    private function getCert($url)
+    private function getCert(string $url)
     {
         try {
             $messageError = 'error to get certificate';
@@ -175,10 +178,10 @@ class CheckSSL
     }
 
     /**
-     * @param $timeStamp
+     * @param string $timeStamp
      * @return string|false
      */
-    private function normalizeDate($timeStamp)
+    private function normalizeDate(string $timeStamp)
     {
         $timeZone = null;
 
@@ -191,10 +194,10 @@ class CheckSSL
 
 
     /**
-     * @param $certStream
+     * @param array $certStream
      * @return resource
      */
-    public function getCertFromArray($certStream)
+    public function getCertFromArray(array $certStream)
     {
         return $certStream['options']['ssl']['peer_certificate'];
     }
