@@ -21,6 +21,7 @@ class CheckSSL
     protected string $dateFormat;
     protected string $formatString;
     protected ?string $timeZone;
+    protected float $timeOut;
 
     /**
      * CheckSSL constructor.
@@ -28,14 +29,16 @@ class CheckSSL
      * @param string $dateFormat
      * @param string $formatString
      * @param string|null $timeZone
+     * @param float $timeOut
      * @throws Exception
      */
-    public function __construct(array $url = [],string $dateFormat = 'U',string $formatString = 'Y-m-d\TH:i:s\Z',?string $timeZone = null)
+    public function __construct(array $url = [],string $dateFormat = 'U',string $formatString = 'Y-m-d\TH:i:s\Z',?string $timeZone = null,float $timeOut = 30)
     {
         ! empty($url) ? $this->add($url) : $this->urls = $url;
         $this->dateFormat = $dateFormat;
         $this->timeZone = $timeZone;
         $this->formatString = $formatString;
+        $this->timeOut = $timeOut;
         $this->result = [];
     }
 
@@ -168,8 +171,11 @@ class CheckSSL
             $messageError = 'error to get certificate';
             $cert = @stream_socket_client(
                 'ssl://' . $url. ':443',
-                $errno, $messageError, 30,
-                STREAM_CLIENT_CONNECT, $this->getStreamContext()
+                $errno, 
+                $messageError, 
+                $this->timeOut,
+                STREAM_CLIENT_CONNECT, 
+                $this->getStreamContext()
             );
         } catch (\Exception $exception)  {
             throw new RuntimeException($exception->getMessage());
