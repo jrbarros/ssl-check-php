@@ -3,3 +3,4 @@ composer.lock
 lsp
 psalm.xml
 composer.phar
+vendor
