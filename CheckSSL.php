@@ -150,6 +150,8 @@ class CheckSSL
         return stream_context_create(
             [
                 'ssl' => [
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
                     'capture_peer_cert' => true
                 ]
             ]
