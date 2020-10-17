@@ -58,6 +58,13 @@ final class CheckSSLTest extends TestCase
         );
     }
 
+    public function testCustomTimeout() {
+
+        $checkSLL = new CheckSSL([], '', '', '', 60.0);
+
+        $this->assertEquals(60.0, $checkSLL->getTimeout());
+    }
+
     public function test() {
 
         $this->expectException(TypeError::class);

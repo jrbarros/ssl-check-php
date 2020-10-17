@@ -99,6 +99,11 @@ class CheckSSL
         return $this->getResults();
     }
 
+    public function getTimeout(): float 
+    {
+        return $this->timeOut;
+    }
+
     /**
      * @param resource|false $siteStream
      * @return array
