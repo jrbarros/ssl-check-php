@@ -120,7 +120,7 @@ print_r($example3);
 ```
 
 
-#### Custom output format
+#### Custom output format / custom timeout
 
 ``` php
 <?php
@@ -134,8 +134,9 @@ $data = [ 'https://symfony.com', 'https://getlaminas.org'];
 $dateFormat = 'U';
 $formatString = 'd-m-Y H:i:s';
 $timeZone = 'America/Sao_Paulo';
+$timeOut = 30
 
-$checkSLL = new CheckSSL($data, $dateFormat, $formatString, $timeZone);
+$checkSLL = new CheckSSL($data, $dateFormat, $formatString, $timeZone, $timeOut);
 
 print_r($checkSLL->check());
 ```
